@@ -13,7 +13,7 @@ FORTRAN = mpif90
 #ifeq ($(FORTRAN),ifort)
 ifeq ($(FORTRAN),mpif90)
   TARGET = snap
-  FFLAGS = -O3 -openmp
+  FFLAGS = -O3 -fopenmp
   FFLAG2 =
   ifeq ($(OPT),no)
     TARGET = snap_db
