@@ -10,7 +10,7 @@ SUBROUTINE translv
   USE global_module, ONLY: i_knd, r_knd, ounit, zero, half, one, two
 
   USE plib_module, ONLY: glmax, comm_snap, iproc, root, thread_num,    &
-    ichunk, do_nested
+    ichunk, do_nested, barrier
 
   USE geom_module, ONLY: geom_alloc, geom_dealloc, dinv, param_calc,   &
     nx, ny_gl, nz_gl, diag_setup
@@ -110,9 +110,15 @@ SUBROUTINE translv
 
   IF ( iproc == root ) WRITE( ounit, 201) ( star, i = 1, 80 )
 
+  CALL marker_init()
+  CALL marker_start(%val(iproc))
+  CALL barrier(comm_snap)
+
   tot_iits = 0
 
   time_loop: DO cy = 1, nsteps
+
+    CALL marker_begin(%val(cy),%val(iproc))
 
     CALL wtime ( t3 )
 
@@ -229,9 +235,14 @@ SUBROUTINE translv
 
     tot_iits = tot_iits + cy_iits
 
+    CALL marker_end(%val(cy),%val(iproc))
+
     IF ( .NOT. otrdone ) EXIT time_loop
 
   END DO time_loop
+
+  CALL barrier(comm_snap)
+  CALL marker_stop(%val(iproc))
 
   IF ( timedep==1 .AND. iproc == root ) THEN
     WRITE( ounit, 210 ) ( star, i = 1, 30 ), tot_iits

@@ -9,15 +9,18 @@ FORTRAN = mpif90
 #FORTRAN = ifort
 #FORTRAN = gfortran
 #FORTRAN = bg-gfortran
+CC = mpicc
+
+CFLAGS = -O3 -DARM_MARKERS -DGEM5_MARKERS
 
 #ifeq ($(FORTRAN),ifort)
 ifeq ($(FORTRAN),mpif90)
   TARGET = snap
-  FFLAGS = -O3 -fopenmp
+  FFLAGS = -O3 -fopenmp -DARM_MARKERS -DGEM5_MARKERS
   FFLAG2 =
   ifeq ($(OPT),no)
     TARGET = snap_db
-    FFLAGS = -g -O0 -check bounds -traceback -openmp
+    FFLAGS = -g -O0 -check bounds -traceback -openmp -DARM_MARKERS -DGEM5_MARKERS
     FFLAG2 =
   endif
 endif
@@ -55,12 +58,13 @@ endif
 OBJS = global.o snap_main.o utils.o version.o plib.o geom.o sn.o \
        data.o control.o input.o setup.o dealloc.o translv.o solvar.o \
        outer.o expxs.o inner.o sweep.o octsweep.o dim1_sweep.o dim3_sweep.o \
-       output.o time.o mms.o
+       output.o time.o mms.o marker_stub.o
 
 SRCS = global.f90 snap_main.f90 utils.f90 version.f90 plib.f90 geom.f90 \
        sn.f90 data.f90 control.f90 input.f90 setup.f90 dealloc.f90 \
        translv.f90 solvar.f90 outer.f90 expxs.f90 inner.f90 sweep.f90 \
-       octsweep.f90 dim1_sweep.f90 dim3_sweep.f90 output.f90 time.f90 mms.f90
+       octsweep.f90 dim1_sweep.f90 dim3_sweep.f90 output.f90 time.f90 mms.f90 \
+       marker_stub.c
 
 $(TARGET) :	$(OBJS)
 		$(FORTRAN) $(FFLAGS) $(FFLAG2) -o $@ $(OBJS)
@@ -101,6 +105,12 @@ mms.o:	global.o geom.o sn.o data.o control.o plib.o
 #
 %.o:	%.f90
 	$(FORTRAN) $(FFLAGS) -c $<
+
+#
+# C rule
+#
+%.o:	%.c
+	$(CC) $(CFLAGS) -c $<
 
 #
 # Cleanup
